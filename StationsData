@@ -1,0 +1,14 @@
+INSERT INTO Station (stationID, Name, city, state) VALUES
+(202, 'Union Station', 'Washington D.C.', 'DC'),
+(212, 'New York Penn', 'New York', 'NY'),
+(215, '30th Street', 'Philadelphia', 'PA'),
+(305, 'Miami Station', 'Miami', 'FL'),
+(401, 'Trenton Transit', 'Trenton', 'NJ'),
+(402, 'New Brunswick', 'New Brunswick', 'NJ'),
+(403, 'Newark Penn', 'Newark', 'NJ'),
+(404, 'Baltimore Penn', 'Baltimore', 'MD'),
+(405, 'Wilmington', 'Wilmington', 'DE'),
+(406, 'Orlando Station', 'Orlando', 'FL'),
+(407, 'Tallahassee', 'Tallahassee', 'FL'),
+(408, 'Atlanta Station', 'Atlanta', 'GA'),
+(409, 'Charlotte Station', 'Charlotte', 'NC');

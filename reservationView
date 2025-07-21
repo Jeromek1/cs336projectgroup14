@@ -1,0 +1,111 @@
+<%@ page import="java.sql.*" %>
+<%
+    Class.forName("com.mysql.jdbc.Driver");
+    Connection con = DriverManager.getConnection(
+        "jdbc:mysql://localhost:3306/cs336project", "root", "YES");
+
+    // Fetch all stations
+    PreparedStatement psStations = con.prepareStatement(
+        "SELECT stationID, Name, city, state FROM Station ORDER BY city, Name");
+    ResultSet rsStations = psStations.executeQuery();
+
+    // Build station options
+    StringBuilder stationOptions = new StringBuilder();
+    while (rsStations.next()) {
+        int id = rsStations.getInt("stationID");
+        String name = rsStations.getString("Name");
+        String city = rsStations.getString("city");
+        String state = rsStations.getString("state");
+        stationOptions.append("<option value='").append(id).append("'>")
+                      .append(name).append(" (").append(city).append(", ").append(state).append(")")
+                      .append("</option>");
+    }
+    rsStations.close();
+    psStations.close();
+%>
+
+<html>
+<head><title>Browse Trains</title></head>
+<body>
+
+<h2>Search for Trains</h2>
+
+<form method="POST" action="browseTrains.jsp">
+    Origin Station:
+    <select name="originStationID">
+        <option value="">--Select Origin--</option>
+        <%=stationOptions.toString()%>
+    </select>
+
+    Destination Station:
+    <select name="destinationStationID">
+        <option value="">--Select Destination--</option>
+        <%=stationOptions.toString()%>
+    </select>
+
+    <input type="submit" value="Search">
+</form>
+
+<%
+    String originID = request.getParameter("originStationID");
+    String destinationID = request.getParameter("destinationStationID");
+
+    if (originID != null && destinationID != null &&
+        !originID.isEmpty() && !destinationID.isEmpty()) {
+%>
+
+<h3>Trains from 
+<%=originID%> to <%=destinationID%></h3>
+
+<table border="1">
+<tr>
+<th>Train ID</th>
+<th>Transit Line</th>
+<th>Departure Time</th>
+<th>Arrival Time</th>
+</tr>
+
+<%
+        PreparedStatement psTrains = con.prepareStatement(
+            "SELECT DISTINCT ts.trainID, ts.transitLineName, ts.originDatetime, ts.endDatetime " +
+            "FROM TrainSchedule ts " +
+            "JOIN Stop s1 ON ts.trainID = s1.trainID " +
+            "JOIN Stop s2 ON ts.trainID = s2.trainID " +
+            "WHERE s1.stationID = ? AND s2.stationID = ? AND s1.sequenceNumber < s2.sequenceNumber " +
+            "ORDER BY ts.originDatetime");
+
+        psTrains.setInt(1, Integer.parseInt(originID));
+        psTrains.setInt(2, Integer.parseInt(destinationID));
+
+        ResultSet rsTrains = psTrains.executeQuery();
+
+        boolean found = false;
+
+        while (rsTrains.next()) {
+            found = true;
+%>
+<tr>
+<td><%=rsTrains.getInt("trainID")%></td>
+<td><%=rsTrains.getString("transitLineName")%></td>
+<td><%=rsTrains.getTimestamp("originDatetime")%></td>
+<td><%=rsTrains.getTimestamp("endDatetime")%></td>
+</tr>
+<%
+        }
+
+        if (!found) {
+%>
+<tr><td colspan="4">No trains found for this route.</td></tr>
+<%
+        }
+
+        rsTrains.close();
+        psTrains.close();
+    }
+    con.close();
+%>
+
+</table>
+
+</body>
+</html>
